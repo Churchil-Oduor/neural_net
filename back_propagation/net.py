@@ -8,66 +8,83 @@ class Layer:
         self.n_neurons = n_neurons
 
         self.old_weights = np.random.randn(n_inputs, n_neurons)
-        self.new_weights = np.ones((n_inputs, n_neurons))
-        
-        self.f_weights = 1 # this will be update during backpropagation. represents the forward layer weights
-                                
         self.biases = np.zeros((1, n_neurons))
 
+
     def forward(self, x_input):
-        self.output = np.dot(x_input, self.old_weights) + self.biases
+        self.input = x_input
+        self.z = np.dot(x_input, self.old_weights) + self.biases
+        self.output = self.z
         return self.output
 
 
+
 class Activation_ReLU:
-    def forward(self, fward_values):
-        self.output = np.maximum(0, fward_values)
+
+    def forward(self, x):
+        self.input = x
+        self.output = np.maximum(0, x)
+        return self.output
+
+
+    def backward(self, grad):
+        grad = grad.copy()
+        grad[self.input <= 0] = 0
+        return grad
+
+
 
 class NeuralNet:
 
-    def __init__(self, layers = [], r=0.1, x_input = 0, target = 0, y_pred = 0):
+
+    def __init__(self, layers =[], r=0.01):
         self.layers = layers
         self.learning_rate = r
-        self.x_input = x_input
-        self.loss = y_pred - target
-
-    def forward(self):
-
-        f_layer = self.layers[0]
-        f_layer.forward(self.x_input)
-
-        for layer in self.layers[1:]:
-            layer.forward(f_layer.output)
-            f_layer = layer
-
-        last_index = len(self.layers) - 1
-        return self.layers[last_index].output
+        self.activations = [Activation_ReLU() for _ in range(len(layers) - 1)]
 
 
-    def new_weight(self, old_w, grad):
-        new_weight = old_w - self.learning_rate * grad
-        return new_weight
+    def forward(self, x):
+        current = x
+
+        for i, layer in enumerate(self.layers):
+
+            current = layer.forward(current)
+
+            if i < len(self.layers) - 1:
+                current = self.activations[i].forward(current)
+
+        self.output = current
+        return current
 
 
-    def back_prop_action(self, c_layer, p_layer):
-        p_layer_output = p_layer.output
-        dl_dw = 2 * self.loss * c_layer.f_weights
-        p_layer.f_weights = dl_dw 
-        full_grad_decent = dl_dw * p_layer_output
-        c_layer.new_weights = self.new_weight(c_layer.old_weights, full_grad_decent)
-        weight_tray = c_layer.old_weights
-        c_layer.old_weights = c_layer.new_weights
-        c_layer.new_weights = weight_tray
+    def compute_loss(self, y_true):
+        self.y_true = y_true
+        self.loss = np.mean((self.output - y_true) ** 2)
+        return self.loss
+
+
 
     def backpropagate(self):
+        delta = 2 * (self.output - self.y_true)
 
-        for i in range(len(self.layers) - 1, 0, -1):
-            c_layer = self.layers[i] # current back layer
-            p_layer = self.layers[i - 1] # previous back layer
-            self.back_prop_action(c_layer, p_layer)
+        for i in reversed(range(len(self.layers))):
+
+            layer = self.layers[i]
 
 
-    def view_weights(self):
-        for layer in self.layers:
-            print(layer.output)
+            dW = layer.input.T @ delta
+
+            dB = np.sum(delta, axis=0, keepdims = True)
+            old_weights = layer.old_weights.copy()
+            layer.old_weights -= self.learning_rate * dB
+
+            if i == 0:
+                break
+
+            delta = self.activations[i-1].backward(delta)
+
+
+    def predict(self, x):
+        return self.forward(x)
+
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-from net2 import Layer
-from net2 import NeuralNet
+from net import Layer
+from net import NeuralNet
 import numpy as np
 
 np.random.seed(0)
@@ -13,18 +13,14 @@ layers = [
     Layer(1, 1)
 ]
 
-X = np.array([[3]])
-y = np.array([[100]])
+X = np.array([[2]])
+y = np.array([[12]])
 
-net = NeuralNet(layers, r=0.01)
+net = NeuralNet(layers, r=0.001)
 
-for epoch in range(1000):
-    prediction = net.forward(X)
-    loss = net.compute_loss(y)
-
+for i in range(100):
+    print(net.forward(X))
+    net.compute_loss(y)
     net.backpropagate()
-
-    if epoch % 100 == 0:
-        print(epoch, loss)
-
+    print(net.predict(X))
 
