@@ -73,10 +73,53 @@ class MLP:
 
         return activations
 
-    def back_propagate(self, error):
-        for i in reversed(range(len(self.derivatives))):
-            pass 
+    def back_propagate(self, error, verbose=False):
 
+        for i in reversed(range(len(self.derivatives))):
+            activations = self.activations[i+1]
+            delta = error * self._sigmoid_derivative(activations)
+            delta_reshaped = delta.reshape(delta.shape[0], -1).T
+            current_activations = self.activations[i]
+            current_activations_reshaped = current_activations.reshape(current_activations.shape[0], -1)
+            self.derivatives[i] = np.dot(current_activations_reshaped, delta_reshaped)
+            error = np.dot(delta, self.weights[i].T)
+
+            if verbose:
+                print("Derivatives for W{}: {}".format(i, self.derivatives[i]))
+
+        return error
+
+
+    def _sigmoid_derivative(self, x):
+        return x * (1.0 - x)
+
+
+    def gradient_descent(self, learning_rate):
+        for i in range(len(self.weights)):
+            weights = self.weights[i]
+            derivatives = self.derivatives[i]
+            weights += learning_rate * derivatives
+            #self.weights[i] = weights ######
+
+    def train(self, inputs, targets, epochs, learning_rate):
+        for i in range(epochs):
+            sum_error = 0
+            for input, target in zip(inputs, targets):
+                # forward propagation
+                output = self.forward_propagate(input)
+
+                # calculate error 
+                error = target - output
+                self.back_propagate(error)
+                self.gradient_descent(learning_rate)
+
+                sum_error += self._mse(target, output)
+
+            #report error
+            print("Error: {} at epoch {}".format(sum_error / len(inputs), i))
+
+    def _mse(self, target, output):
+        return np.average((target - output) ** 2)
 
 
     def _sigmoid(self, x):
@@ -89,4 +132,5 @@ class MLP:
         """
         y = 1/(1 + np.exp(-x))
         return y
+
 
