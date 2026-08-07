@@ -1,26 +1,45 @@
 import numpy as np
 
-
+"""
+class Layer defines a neural net layer
+"""
 class Layer:
 
-    def __init__(self, n_inputs, n_neurons):
+    """Initializing a Layer
+
+    Args:
+        n_inputs (int): number of inputs
+        n_neurons (int): number of neurons
+
+    """
+    def __init__(self, n_inputs=0, n_neurons=0):
+
         self.n_inputs = n_inputs
         self.n_neurons = n_neurons
 
         self.old_weights = np.random.randn(n_inputs, n_neurons)
-        self.biases = np.zeros((1, n_neurons))
+        self.old_biases = np.random.randn(1, n_neurons)
 
 
     def forward(self, x_input):
         self.input = x_input
-        self.z = np.dot(x_input, self.old_weights) + self.biases
+        self.z = np.dot(x_input, self.old_weights) + self.old_biases
         self.output = self.z
         return self.output
 
 
 
-class Activation_ReLU:
+"""
+class Activation_ReLU defines the ReLU activation.
+"""
 
+class Activation_ReLU:
+    """Doing forward for the Activation ReLU.
+
+    Args:
+        x (int): output layer value to undergo activation.
+
+    """
     def forward(self, x):
         self.input = x
         self.output = np.maximum(0, x)
@@ -35,7 +54,6 @@ class Activation_ReLU:
 
 
 class NeuralNet:
-
 
     def __init__(self, layers =[], r=0.01):
         self.layers = layers
@@ -63,28 +81,29 @@ class NeuralNet:
         return self.loss
 
 
-
     def backpropagate(self):
         delta = 2 * (self.output - self.y_true)
 
         for i in reversed(range(len(self.layers))):
-
             layer = self.layers[i]
-
 
             dW = layer.input.T @ delta
 
             dB = np.sum(delta, axis=0, keepdims = True)
+
             old_weights = layer.old_weights.copy()
-            layer.old_weights -= self.learning_rate * dB
+            old_biases = layer.old_biases.copy()
+
+            layer.old_biases -= self.learning_rate * dB
+            layer.old_weights -= self.learning_rate * dW
 
             if i == 0:
                 break
 
+            delta = delta @ old_weights.T
             delta = self.activations[i-1].backward(delta)
+
 
 
     def predict(self, x):
         return self.forward(x)
-
-

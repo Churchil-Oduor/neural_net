@@ -34,26 +34,32 @@ class Activation_ReLU:
 
 class NeuralNet:
 
-    def __init__(self):
-        self.layer1 = Layer(1, 1)
-        self.layer2 = Layer(1, 1)
-        self.layer3 = Layer(1, 1)
-        self.layer4 = Layer(1, 1)
+    def __init__(self, layers = []):
+        self.layers = layers
             
 
-    def forward(self, X):
-        self.layer1.forward(X)
-        self.layer2.forward(self.layer1.output)
-        self.layer3.forward(self.layer2.output)
-        self.layer4.forward(self.layer3.output)
+    def forward(self, input_x):
+        nlayer = self.layers[0]
+        nlayer.forward(input_x)
 
-        return self.layer4.output
+        for layer in self.layers[1:]:
+            layer.forward(nlayer)
+            nlayer = layer
+
+        
+        #self.layer1.forward(X)
+        #self.layer2.forward(self.layer1.output)
+        #self.layer3.forward(self.layer2.output)
+        #self.layer4.forward(self.layer3.output)
+
+        last_index = len(self.layers) - 1
+        return self.layers[last_index].output
 
 
-    def backward(self, dloss):
-        self.layer4.backward(dloss)
-        self.layer3.backward(self.layer4.dinputs)
-        self.layer2.backward(self.layer3.dinputs)
-        self.layer1.backward(self.layer2.dinputs)
-        return self.layer1.dinputs
+    #def backward(self, dloss):
+     #   self.layer4.backward(dloss)
+      #  self.layer3.backward(self.layer4.dinputs)
+       # self.layer2.backward(self.layer3.dinputs)
+       # self.layer1.backward(self.layer2.dinputs)
+       # return self.layer1.dinputs
         

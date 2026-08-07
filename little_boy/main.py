@@ -5,10 +5,12 @@ from engine import NeuralNet
 import numpy as np
 
 
-net = NeuralNet()
 X = np.array([[2]])
+layer = Layer(1, 1)
 
-prediction = net.forward(X)
-print(prediction)
+net = NeuralNet([Layer(1, 1), Layer(1, 1)])
+#net.forward(X)
+print(net.forward(X))
+
 
 

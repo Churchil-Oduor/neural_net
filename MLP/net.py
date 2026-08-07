@@ -99,7 +99,7 @@ class MLP:
             weights = self.weights[i]
             derivatives = self.derivatives[i]
             weights += learning_rate * derivatives
-            #self.weights[i] = weights ######
+           # self.weights[i] = weights ######
 
     def train(self, inputs, targets, epochs, learning_rate):
         for i in range(epochs):
